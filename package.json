@@ -1,0 +1,18 @@
+{
+  "name": "pokeidle-manager",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Gerenciador desktop com Node.js, WebSocket e Windows Forms, com demonstração offline.",
+  "scripts": {
+    "start": "node src/main.mjs",
+    "demo": "node src/demo.mjs",
+    "demo:desktop": "node src/demo.mjs --desktop",
+    "test": "node --test",
+    "test:desktop": "powershell.exe -NoProfile -STA -ExecutionPolicy Bypass -File desktop/desktop.ps1 -SmokeTest",
+    "catalog:update": "node scripts/update-hunt-catalog.mjs"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}

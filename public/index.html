@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PokeIdle Manager · Contas</title>
+<style>
+:root{color-scheme:dark;font-family:Segoe UI,system-ui,sans-serif;background:#10101b;color:#eeeef7}*{box-sizing:border-box}body{max-width:1280px;margin:auto;padding:32px}header{display:flex;justify-content:space-between;align-items:center;gap:20px}h1{margin:0;font-size:30px}p{color:#a5a7bf;line-height:1.6}button,input,select{font:inherit;border-radius:8px;border:1px solid #45435a;padding:10px;background:#262638;color:#fff}button{cursor:pointer}button:hover{border-color:#a78bfa}button:disabled{opacity:.4;cursor:default}.primary{background:#7652ca;border:0}.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin-top:25px}.card{padding:24px;background:#1b1b2a;border:1px solid #333347;border-radius:16px}.top{display:flex;justify-content:space-between;gap:15px}.badge{color:#b7a0fa;font-size:13px}.numbers{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:22px 0}.number{font-size:21px}.label{font-size:12px;color:#aaaac2}.buttons{display:flex;gap:8px;flex-wrap:wrap}.stock{font-size:13px;color:#afafc8;min-height:34px;margin:15px 0}.warn{color:#ffc17c}.rule{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:6px;margin:10px 0}.rule input{min-width:0;width:100%}select{min-width:0;width:100%}.limits{display:grid;grid-template-columns:1fr 1fr;gap:10px}.limits input{width:100%;margin:6px 0}details{margin-top:20px}summary{cursor:pointer;color:#c1a8ff}.log{background:#1b1b2a;padding:20px;border-radius:12px;font-size:13px;max-height:260px;overflow:auto}dialog{width:min(650px,95vw);background:#1b1b2a;color:white;border:1px solid #57516c;border-radius:15px;padding:25px}dialog::backdrop{background:#000a}code{user-select:all;background:#11111c;padding:10px;display:block}#message{min-height:24px;color:#ffc17c;margin:15px 0}.footer{font-size:12px}.live{color:#7ee5b5}@media(max-width:780px){body{padding:18px}.cards{grid-template-columns:1fr}header{display:block}.rule{grid-template-columns:1.4fr 1fr 1fr auto}}
+</style>
+<header><div><h1>PokeIdle Manager</h1><p>Quatro contas. Um gerenciador.<br>Farm sem a aba do jogo; reposição com limites por conta.</p></div><div class="buttons"><button id="start-all" class="primary">Iniciar importadas</button><button id="stop-all">Parar todas</button></div></header>
+<div id="message" role="status"></div><div class="cards" id="cards"></div>
+<p class="footer">O programa precisa continuar aberto. Fechar este painel não encerra o farm. Abrir a mesma conta no jogo pausa sua conexão aqui.</p>
+<h3>Atividade recente</h3><div class="log" id="log"></div>
+<dialog id="import-dialog"><h2>Importar sessão</h2><p>Entre na conta no jogo. Abra F12 → Console e execute este comando para copiar sua sessão:</p><code>copy(localStorage.getItem('sessao'))</code><p>Depois volte aqui e clique em Importar. O programa lê o clipboard do Windows, protege a sessão e limpa o clipboard. Não compartilhe esse conteúdo.</p><p>Se o Console bloquear colagem, digite <b>allow pasting</b> manualmente antes. Feche a aba do jogo antes de iniciar a conta neste painel.</p><p class="warn" id="import-error" role="status"></p><div class="buttons"><button id="import-confirm" class="primary">Importar do clipboard</button><button id="import-cancel">Cancelar</button></div></dialog>
+<script>
+const key='__API_KEY__', $=s=>document.querySelector(s), fmt=n=>n==null?'—':Number(n).toLocaleString('pt-BR');
+const drafts=new Map();let latest,importSlot;
+const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!=null)n.textContent=text;if(cls)n.className=cls;return n;};
+const message=text=>$('#message').textContent=text;
+async function api(action,slot,config){const r=await fetch('/api/action',{method:'POST',headers:{'Content-Type':'application/json','X-Manager-Key':key},body:JSON.stringify({action,slot,config})});const d=await r.json();if(!r.ok)throw Error(d.error);return d;}
+function button(text,fn,cls){const b=el('button',text,cls);b.onclick=()=>Promise.resolve().then(fn).catch(e=>message(e.message));return b;}
+function makeCard(a){
+ const card=el('section',null,'card');card.id='account-'+a.slot;
+ const top=el('div',null,'top'),title=el('strong',`Conta ${a.slot}`),status=el('span',null,'badge');title.dataset.field='title';status.dataset.field='status';top.append(title,status);card.append(top);
+ const numbers=el('div',null,'numbers');for(const [field,label]of [['gold','Coins'],['gain','Variação de Coins'],['events','Eventos recebidos']]){const box=el('div'),num=el('div',null,'number');num.dataset.field=field;box.append(num,el('div',label,'label'));numbers.append(box);}card.append(numbers);
+ const hunt=el('div',null,'label');hunt.dataset.field='hunt';const st=el('div',null,'stock');st.dataset.field='stock';card.append(hunt,st);
+ const actions=el('div',null,'buttons'),start=button('Iniciar',()=>api('start',a.slot),'primary'),stop=button('Parar',()=>api('stop',a.slot)),imp=button('Importar sessão',()=>{importSlot=a.slot;$('#import-dialog').showModal();});start.dataset.control='start';stop.dataset.control='stop';actions.append(start,stop,imp,button("Remover conta",async()=>{if(confirm("Remover esta conta do computador? A conta no jogo continua existindo.")){await api("remove",a.slot);drafts.delete(a.slot);card.remove();await refresh();}}));card.append(actions);
+ const warn=el('p',null,'warn');warn.dataset.field='guard';card.append(warn);
+ const openAccount=button('Abrir conta no navegador',async()=>{await api('browser-open',a.slot);message('Conta aberta em janela anônima isolada. Feche essa janela e clique em Iniciar para voltar ao bot.');});openAccount.dataset.control='browser-open';actions.append(openAccount);
+ const twitchBox=el('div'),twitchInfo=el('p',null,'label'),twitchLinks=el('div',null,'buttons');twitchInfo.dataset.field='twitch';twitchLinks.dataset.field='twitch-links';
+ const openLives=button('Abrir painel de lives',async()=>{const r=await api('twitch.open',a.slot);message(`${r.count} live(s) no player sem som. Entre no chat com a Twitch vinculada; o jogo confirma o bônus.`);});openLives.dataset.control='twitch-open';
+ twitchBox.append(twitchInfo,openLives,twitchLinks,el('p','Assista logado na Twitch vinculada. O jogo confirma o bônus em alguns minutos; as lives precisam continuar abertas.','label'));card.append(twitchBox);
+ const details=el('details'),summary=el('summary','Configurar reposição');details.append(summary);
+ const form=el('div');form.dataset.field='form';details.append(form);card.append(details);
+ return card;
+}
+function renderForm(card,a){
+ const form=card.querySelector('[data-field=form]');form.replaceChildren();
+ const d=drafts.get(a.slot)??structuredClone(a.config);d.rules=d.rules.map(r=>r.target===undefined?r:({kind:r.kind,id:r.id,min:r.min,qty:Math.max(1,r.target-r.min+1)}));drafts.set(a.slot,d);
+ const label=el('label'),check=el('input');check.type='checkbox';check.checked=d.enabled;check.onchange=()=>d.enabled=check.checked;label.append(check,document.createTextNode(' Ativar reposição automática'));form.append(label);
+ const limits=el('div',null,'limits');let budgetInput;for(const [field,text]of [['reserve','Coins que quero guardar'],['budget','Limite total de gastos']]){const lab=el('label',text,'label'),input=el('input');input.type='number';input.min='0';input.step='1';input.value=d[field];input.oninput=()=>d[field]=Number(input.value);if(field==='budget'){budgetInput=input;input.disabled=!!d.unlimited;}lab.append(input);limits.append(lab);}form.append(limits);
+ const unlimitedLabel=el('label'),unlimited=el('input');unlimited.type='checkbox';unlimited.checked=!!d.unlimited;unlimited.onchange=()=>{d.unlimited=unlimited.checked;budgetInput.disabled=unlimited.checked;};unlimitedLabel.append(unlimited,document.createTextNode(' Gastar sem limite — respeitando os Coins que quero guardar'));form.append(unlimitedLabel);
+ form.append(el('p','Compras usam Coins. O orçamento acumula entre reinícios até você renová-lo. Uma compra por vez, com intervalo mínimo de 30 segundos.','label'));
+ for(const [index,r]of d.rules.entries()){
+  const row=el('div',null,'rule'),select=el('select');select.setAttribute('aria-label','Item para repor');
+  const options=[...a.catalog];if(!options.some(i=>i.kind===r.kind&&i.id===r.id))options.push({kind:r.kind,id:r.id,name:`Item ${r.id} (conecte para atualizar)`,price:0});
+  for(const i of options){const o=el('option',`${i.name} · ${fmt(i.price)} Coins`);o.value=`${i.kind}:${i.id}`;select.append(o);}select.value=`${r.kind}:${r.id}`;select.onchange=()=>{const[k,id]=select.value.split(':');r.kind=k;r.id=Number(id);};row.append(select);
+  for(const [field,text]of [['min','Quando tiver menos de'],['qty','Comprar por vez']]){const input=el('input');input.type='number';input.min='1';input.value=r[field];input.title=text;input.setAttribute('aria-label',text);input.placeholder=text;input.oninput=()=>r[field]=Number(input.value);row.append(input);}
+  row.append(button('×',()=>{d.rules.splice(index,1);renderForm(card,a);}));form.append(row,el('div',`Abaixo de ${fmt(r.min)}, comprar ${fmt(r.qty)} por vez.`,'label'));
+ }
+ form.append(el('div','Colunas: item / estoque mínimo / quantidade a comprar.','label'));
+ const controls=el('div',null,'buttons');controls.append(button('+ Adicionar item',()=>{const i=a.catalog.find(i=>!d.rules.some(r=>r.kind===i.kind&&r.id===i.id));if(!i)throw Error('Conecte a conta para carregar os itens disponíveis.');d.rules.push({kind:i.kind,id:i.id,min:100,qty:500});renderForm(card,a);}),button('Salvar compras',async()=>{await api('config',a.slot,d);message(`Preferências de compra da conta ${a.slot} salvas.`);},'primary'),button('Aplicar a todas',async()=>{if(confirm('Substituir as preferencias de compras de todas as contas importadas? Isso pode ativar compras.')){await api('config-all',a.slot,d);drafts.clear();document.querySelectorAll('.card').forEach(c=>c.remove());await refresh();message('Preferencias aplicadas a todas as contas.');}}),button('Desligar compras',async()=>{await api('disable-purchases',a.slot);drafts.delete(a.slot);card.remove();await refresh();message('Compras desligadas. Preferências preservadas.');}),button('Renovar orçamento / liberar',async()=>{if(confirm('Confira no jogo qualquer compra pendente antes de liberar. Renovar o orçamento e liberar a reposição desta conta?'))await api('reset',a.slot);}));form.append(controls);
+}
+async function refresh(){
+ try{const r=await fetch('/api/state',{headers:{'X-Manager-Key':key}});if(!r.ok)throw Error();latest=await r.json();
+ for(const a of latest.accounts){let card=$('#account-'+a.slot);if(!card){card=makeCard(a);$('#cards').append(card);renderForm(card,a);}
+  const set=(field,text)=>card.querySelector(`[data-field=${field}]`).textContent=text;
+  set('title',a.nick?`Conta ${a.slot} · ${a.nick}`:`Conta ${a.slot}`);set('status',a.status);set('gold',fmt(a.gold));set('gain',fmt(a.gain));set('events',fmt(a.events));set('hunt',a.hunt?`Hunt: ${a.hunt} · último estado há ${a.age}s`:'Conecte para acompanhar o farm.');
+  set('stock',a.catalog.filter(i=>Number((i.kind==='ball'?a.balls:a.items)[i.id])>0).map(i=>`${i.name}: ${fmt((i.kind==='ball'?a.balls:a.items)[i.id])}`).join(' · ')||'Estoque disponível após conectar.');
+  set('guard',a.guard.fault|| (a.guard.pending?'Compra enviada, aguardando aumento do estoque.':`Compras ${a.config.enabled?'ativadas':'desativadas'} · ${a.config.unlimited?'gastar sem limite':`gasto: ${fmt(a.guard.spent||0)} / ${fmt(a.config.budget)}`}`));
+  const tw=a.twitch,old=tw?.fresh?'':' (última leitura; conta desconectada)';
+  set('twitch',!tw?.known?'Twitch: aguardando informação do jogo':!tw.linked?`Twitch não vinculada — vincule pelo jogo${old}`:tw.active?`Twitch: bônus ATIVO · ${tw.percent==null?'percentual não informado':'+'+fmt(tw.percent)+'% XP'} · ${tw.count} live(s) · ${tw.login}${old}`:`Twitch: bônus INATIVO · conta ${tw.login}${old}`);
+  card.querySelector('[data-control=twitch-open]').disabled=!tw?.fresh||!tw.linked||!tw.lives.some(l=>l.bonus);
+  const links=card.querySelector('[data-field=twitch-links]'),sig=JSON.stringify(tw?.lives);
+  if(links.dataset.signature!==sig){links.dataset.signature=sig;links.replaceChildren();for(const l of tw?.lives??[]){const link=el('a',`${l.name}${l.watching?' ✓ detectado':l.bonus?' · bônus disponível':' · bônus não confirmado'}`);link.href=l.url;link.target='_blank';link.rel='noopener noreferrer';link.style.color='#c1a8ff';link.style.fontSize='13px';links.append(link);}}
+  card.querySelector('[data-control=start]').disabled=!a.imported||a.browser?.active||['conectada','conectando','aguardando reconexão'].includes(a.status);card.querySelector('[data-control=stop]').disabled=!a.imported;card.querySelector('[data-control=browser-open]').disabled=!a.imported||a.browser?.opening;if(a.browser?.active)set('status',a.browser.message);
+  const signature=JSON.stringify(a.catalog);if(card.dataset.catalog!==signature){card.dataset.catalog=signature;renderForm(card,a);}
+ }
+ $('#log').replaceChildren(...latest.log.map(l=>el('div',`${new Date(l.at).toLocaleTimeString('pt-BR')} · Conta ${l.slot} · ${l.text}`)));
+ if(latest.catalogError)message(latest.catalogError);
+ }catch{message('Gerenciador indisponível. Mantenha iniciar.cmd aberto ou reinicie-o.');}
+}
+$('#import-confirm').onclick=async()=>{const b=$('#import-confirm');b.disabled=true;$('#import-error').textContent='';try{await api('import',importSlot);drafts.delete(importSlot);$('#account-'+importSlot)?.remove();$('#import-dialog').close();message('Conta importada. Feche a aba do jogo e clique em Iniciar.');await refresh();}catch(e){$('#import-error').textContent=e.message;}finally{b.disabled=false;}};
+$('#import-cancel').onclick=()=>$('#import-dialog').close();
+for(const [id,action]of [['start-all','start'],['stop-all','stop']])$( '#'+id).onclick=async()=>{try{for(const a of latest?.accounts??[])if(a.imported)await api(action,a.slot);}catch(e){message(e.message);}};
+refresh();setInterval(refresh,2000);
+</script></html>

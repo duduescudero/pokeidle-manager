@@ -1,0 +1,17 @@
+node_modules/
+dist/
+coverage/
+.env
+.env.*
+*.session
+*.secret
+*.secret.tmp
+*.log
+manager.json
+manager.json.tmp
+account-*.json
+data/hunt-catalog.json
+data/hunt-catalog.json.tmp
+runtime/
+.DS_Store
+Thumbs.db

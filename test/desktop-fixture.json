@@ -1,0 +1,375 @@
+{
+  "accounts": [
+    {
+      "slot": 1,
+      "nick": "Treinador exemplo",
+      "status": "conectada",
+      "imported": true,
+      "hunt": "ancient_pupitar",
+      "gold": 18125370,
+      "gain": -188757,
+      "trainerLevel": 277,
+      "activePokemon": {
+        "name": "Venusaur",
+        "level": 276,
+        "shiny": false,
+        "xp": {
+          "total": 3767000,
+          "current": 1608275,
+          "percent": 42.7
+        },
+        "hp": 4394,
+        "maxHp": 6588
+      },
+      "captures": [
+        {
+          "id": 12,
+          "name": "Ancient Pupitar",
+          "level": 100,
+          "shiny": true,
+          "at": 1791399600000
+        },
+        {
+          "id": 11,
+          "name": "Ancient Pupitar",
+          "level": 100,
+          "shiny": false,
+          "at": 1791399540000
+        }
+      ],
+      "events": 262,
+      "age": 1,
+      "balls": {
+        "4": 7964
+      },
+      "items": {
+        "200": 1234,
+        "201": 1234,
+        "202": 1234,
+        "203": 1234,
+        "204": 6524,
+        "206": 1234,
+        "207": 1234
+      },
+      "catalog": [
+        {
+          "kind": "ball",
+          "id": 4,
+          "name": "Ultra Ball",
+          "price": 100
+        },
+        {
+          "kind": "item",
+          "id": 204,
+          "name": "Ultimate Potion",
+          "category": "heal",
+          "price": 1500
+        },
+        {
+          "kind": "item",
+          "id": 205,
+          "name": "Revive",
+          "category": "revive",
+          "price": 600
+        },
+        {
+          "kind": "item",
+          "id": 200,
+          "name": "Small Potion",
+          "category": "heal",
+          "price": 100
+        },
+        {
+          "kind": "item",
+          "id": 201,
+          "name": "Great Potion",
+          "category": "heal",
+          "price": 100
+        },
+        {
+          "kind": "item",
+          "id": 202,
+          "name": "Ultra Potion",
+          "category": "heal",
+          "price": 100
+        },
+        {
+          "kind": "item",
+          "id": 203,
+          "name": "Hyper Potion",
+          "category": "heal",
+          "price": 100
+        },
+        {
+          "kind": "item",
+          "id": 206,
+          "name": "Max Revive",
+          "category": "revive",
+          "price": 100
+        },
+        {
+          "kind": "item",
+          "id": 207,
+          "name": "Full Restore",
+          "category": "heal",
+          "price": 100
+        }
+      ],
+      "config": {
+        "enabled": true,
+        "reserve": 1000000,
+        "budget": 100000,
+        "rules": [
+          {
+            "kind": "ball",
+            "id": 4,
+            "min": 100,
+            "target": 500
+          },
+          {
+            "kind": "item",
+            "id": 204,
+            "min": 50,
+            "qty": 100
+          }
+        ]
+      },
+      "guard": {
+        "spent": 25000
+      },
+      "supplyMessage": "Seus itens estão acima do mínimo configurado.",
+      "twitch": {
+        "known": true,
+        "fresh": true,
+        "linked": true,
+        "login": "exemplo",
+        "active": true,
+        "percent": 20,
+        "count": 3,
+        "lives": [
+          {
+            "name": "Canal exemplo",
+            "bonus": true,
+            "watching": true
+          }
+        ]
+      },
+      "trainerXp": {
+        "total": 3795100,
+        "current": 1804105,
+        "percent": 47.5
+      },
+      "diamonds": 1,
+      "gems": 0,
+      "metrics": {
+        "netEstimated": 39600,
+        "goldHour": 381457,
+        "shinySeen": 1,
+        "income": 48000,
+        "costEstimated": 8400,
+        "killsHour": 572,
+        "shinyCaught": 1,
+        "xpTrainer": 750000,
+        "catchesHour": 24,
+        "pokemonHour": 5880795,
+        "used": [
+          {
+            "name": "Ultra Ball",
+            "qty": 12
+          }
+        ],
+        "ready": true,
+        "kills": 72,
+        "drops": [
+          {
+            "name": "Fire Orb",
+            "qty": 3
+          },
+          {
+            "name": "Small Stone",
+            "qty": 14
+          }
+        ],
+        "uptimeMs": 453000,
+        "costComplete": true,
+        "trainerHour": 5960265,
+        "xpPokemon": 740000,
+        "catches": 3,
+        "netHour": -15000
+      },
+      "bonuses": [
+        {
+          "text": "+50% XP",
+          "name": "VIP",
+          "until": 1793000000000
+        },
+        {
+          "name": "Kick",
+          "text": "Não vinculada"
+        },
+        {
+          "text": "+20% XP · +5% farm",
+          "name": "Evento",
+          "until": 1791409600000
+        }
+      ],
+      "automation": "Bolas sem parar · Poção ligada · Revive ligado · Voltar à hunt ligado",
+      "depot": {
+        "count": 5,
+        "collection": 12,
+        "eligible": [
+          {
+            "name": "Ancient Pupitar",
+            "protected": false,
+            "id": 10,
+            "level": 100
+          },
+          {
+            "name": "Ancient Pupitar",
+            "protected": false,
+            "id": 11,
+            "level": 100
+          },
+          {
+            "name": "Ancient Pupitar",
+            "protected": false,
+            "id": 12,
+            "level": 100
+          },
+          {
+            "name": "Pikachu shiny",
+            "protected": false,
+            "id": 13,
+            "level": 50,
+            "shiny": true
+          },
+          {
+            "name": "Charizard P5",
+            "protected": false,
+            "id": 14,
+            "level": 80,
+            "potencia": 5
+          }
+        ],
+        "known": true,
+        "team": 5,
+        "pokemon": [
+          {
+            "name": "Ancient Pupitar",
+            "protected": false,
+            "id": 10,
+            "level": 100
+          },
+          {
+            "name": "Ancient Pupitar",
+            "protected": false,
+            "id": 11,
+            "level": 100
+          },
+          {
+            "name": "Ancient Pupitar",
+            "protected": false,
+            "id": 12,
+            "level": 100
+          },
+          {
+            "name": "Pikachu shiny",
+            "protected": false,
+            "id": 13,
+            "level": 50,
+            "shiny": true
+          },
+          {
+            "name": "Charizard P5",
+            "protected": false,
+            "id": 14,
+            "level": 80,
+            "potencia": 5
+          }
+        ],
+        "protected": 0,
+        "valuable": 2
+      },
+      "saleConfig": {
+        "minutes": 60,
+        "enabled": false
+      },
+      "saleGuard": {
+        "pending": null,
+        "fault": ""
+      }
+    },
+    {
+      "slot": 2,
+      "nick": "Conta reserva",
+      "status": "parada",
+      "imported": true,
+      "balls": {},
+      "items": {},
+      "catalog": [],
+      "config": {
+        "enabled": false,
+        "reserve": 1000000,
+        "budget": 100000,
+        "rules": []
+      },
+      "guard": {
+        "spent": 0
+      },
+      "twitch": {
+        "known": false,
+        "lives": []
+      }
+    },
+    {
+      "slot": 3,
+      "status": "não importada",
+      "imported": false,
+      "balls": {},
+      "items": {},
+      "catalog": [],
+      "config": {
+        "enabled": false,
+        "reserve": 1000000,
+        "budget": 100000,
+        "rules": []
+      },
+      "guard": {},
+      "twitch": {
+        "known": false,
+        "lives": []
+      }
+    },
+    {
+      "slot": 4,
+      "status": "não importada",
+      "imported": false,
+      "balls": {},
+      "items": {},
+      "catalog": [],
+      "config": {
+        "enabled": false,
+        "reserve": 1000000,
+        "budget": 100000,
+        "rules": []
+      },
+      "guard": {},
+      "twitch": {
+        "known": false,
+        "lives": []
+      }
+    }
+  ],
+  "log": [
+    {
+      "slot": 1,
+      "at": 1791399600000,
+      "text": "Twitch confirmou +20% de XP em três lives."
+    },
+    {
+      "slot": 1,
+      "at": 1791399590000,
+      "text": "Conectada. Acompanhando o farm em Ancient Pupitar."
+    }
+  ]
+}

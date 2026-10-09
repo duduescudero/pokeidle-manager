@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PokeIdle Manager · Demonstração</title>
+<style>
+:root{color-scheme:dark;font-family:Segoe UI,system-ui,sans-serif;background:#0c101c;color:#edf2ff;--muted:#a6b3cc;--line:#29334b;--accent:#a496ff}*{box-sizing:border-box}body{max-width:1200px;margin:auto;padding:40px 24px 32px}button{font:inherit;cursor:pointer}header{display:flex;justify-content:space-between;align-items:center;gap:24px}.eyebrow{font-size:12px;letter-spacing:2px;color:var(--accent);font-weight:700}h1{font-size:clamp(28px,5vw,42px);margin:12px 0}p{color:var(--muted);line-height:1.65;margin:8px 0}.pill{white-space:nowrap;padding:10px 16px;border:1px solid #45533e;background:#16251f;color:#8bdfb5;border-radius:30px;font-size:13px}.banner{background:#151c31;border:1px solid var(--line);padding:16px 20px;border-radius:12px;margin:28px 0;color:#bac8e5;font-size:14px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.card{border:1px solid var(--line);border-radius:16px;padding:24px;background:linear-gradient(135deg,#192239,#131a2b);text-align:left;color:inherit;width:100%}.card:hover,.card[aria-pressed=true]{border-color:var(--accent)}.top{display:flex;justify-content:space-between;gap:16px;font-size:15px}.status{font-size:12px;color:#8bdfb5}.dim{color:var(--muted)}.pokemon{font-size:24px;font-weight:650;margin:20px 0 8px}.level{font-size:13px;color:var(--muted)}.meter{height:6px;border-radius:6px;background:#29334b;margin:12px 0 20px;overflow:hidden}.fill{height:100%;background:#a496ff;border-radius:6px}.metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.value{font-size:19px;font-weight:600}.label{font-size:11px;color:var(--muted);margin-top:5px}.bottom{border-top:1px solid var(--line);padding-top:16px;margin-top:22px;display:flex;justify-content:space-between;gap:12px;font-size:12px;color:var(--muted)}.link{color:#b8aaff}h2{font-size:20px;margin:32px 0 14px}.panel{border:1px solid var(--line);background:#131a2b;border-radius:16px;padding:24px}.facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px}.facts strong{display:block;font-size:17px;margin-top:7px}ul{color:var(--muted);padding-left:20px;line-height:1.8}.log{color:var(--muted);font-size:13px;line-height:1.8}footer{margin-top:32px;font-size:12px;color:var(--muted)}:focus-visible{outline:3px solid #d4cfff;outline-offset:4px}@media(max-width:700px){body{padding:24px 16px}header{display:block}.pill{display:inline-block;margin-top:15px}.grid{grid-template-columns:1fr}.facts{grid-template-columns:1fr 1fr}.metrics .value{font-size:16px}}
+</style>
+</head>
+<body>
+<header><div><div class="eyebrow">PROJETO PESSOAL · NODE.JS + C#</div><h1>PokeIdle Manager</h1><p>Estado em tempo real. Operações com confirmação.<br>Um painel para acompanhar até quatro contas.</p></div><span class="pill">Demonstração offline</span></header>
+<div class="banner">Todos os dados abaixo são fictícios. Explore os cartões para ver detalhes. Esta demonstração não acessa contas, não se conecta ao jogo e não executa compras ou vendas.</div>
+<main><div class="grid" id="cards" aria-label="Contas de demonstração"></div><h2>Detalhes da conta</h2><section class="panel" id="details" aria-live="polite"></section><h2>Atividade ilustrativa</h2><section class="panel log" id="log"></section></main>
+<footer>A interface web demonstra o estado das contas. A aplicação principal possui também telas nativas em Windows Forms.</footer>
+<script>
+const key='__API_KEY__';
+const fmt=n=>Number.isFinite(n)?n.toLocaleString('pt-BR'):'—';
+const node=(tag,text,cls)=>{const n=document.createElement(tag);if(text!=null)n.textContent=text;if(cls)n.className=cls;return n;};
+function metric(value,label){const box=node('div');box.append(node('div',value,'value'),node('div',label,'label'));return box;}
+function details(a){
+  const panel=document.querySelector('#details');panel.replaceChildren();
+  panel.append(node('h3',a.nick||`Conta ${a.slot} · não importada`));
+  const facts=node('div',null,'facts');
+  for(const [label,value] of [['Pokémon ativo',a.activePokemon?.name||'—'],['Hunt',a.hunt||'—'],['Nível do treinador',fmt(a.trainerLevel)],['HP',a.activePokemon?`${fmt(a.activePokemon.hp)} / ${fmt(a.activePokemon.maxHp)}`:'—'],['Compras automáticas',a.config?.enabled?'Ativadas no exemplo':'Desativadas no exemplo'],['Reserva de Coins',fmt(a.config?.reserve)]]){const box=node('div',label,'label');box.append(node('strong',value));facts.append(box);}
+  panel.append(facts);
+  const notes=node('ul');for(const text of ['As sessões reais ficam protegidas no Windows; não são usadas nesta demonstração.','O aplicativo aguarda confirmação do servidor antes de considerar uma operação concluída.','Estimativas de XP e valores deste exemplo não representam medições atuais do jogo.'])notes.append(node('li',text));panel.append(notes);
+  for(const card of document.querySelectorAll('.card'))card.setAttribute('aria-pressed',String(card.dataset.slot===String(a.slot)));
+}
+async function load(){
+  const response=await fetch('/api/state',{headers:{'X-Manager-Key':key}});if(!response.ok)throw Error('Painel indisponível.');const snapshot=await response.json();
+  for(const a of snapshot.accounts){const card=node('button',null,'card');card.type='button';card.dataset.slot=a.slot;card.setAttribute('aria-pressed','false');
+    const top=node('div',null,'top');top.append(node('strong',a.nick||`Conta ${a.slot}`),node('span',a.status,a.imported?'status':'dim'));card.append(top);
+    card.append(node('div',a.activePokemon?.name||'Pronta para uma nova conta','pokemon'),node('div',a.activePokemon?`Pokémon nível ${fmt(a.activePokemon.level)} · Treinador nível ${fmt(a.trainerLevel)}`:'Nenhuma sessão importada','level'));
+    const meter=node('div',null,'meter'),fill=node('div',null,'fill');fill.style.width=`${Math.min(100,Math.max(0,a.activePokemon?.xp?.percent||0))}%`;meter.append(fill);card.append(meter);
+    const metrics=node('div',null,'metrics');metrics.append(metric(fmt(a.gold),'Coins'),metric(fmt(a.gain),'Variação de Coins'),metric(a.activePokemon?`${fmt(a.activePokemon.xp?.percent)}%`:'—','Progresso de XP'));card.append(metrics);
+    const bottom=node('div',null,'bottom');bottom.append(node('span',a.hunt||'Sem hunt no exemplo'),node('span','Explorar detalhes →','link'));card.append(bottom);card.onclick=()=>details(a);document.querySelector('#cards').append(card);
+  }
+  details(snapshot.accounts[0]);document.querySelector('#log').replaceChildren(...snapshot.log.map(entry=>node('div',`Conta ${entry.slot} · ${entry.text}`)));
+}
+load().catch(()=>{document.querySelector('#details').textContent='Não foi possível carregar a demonstração. Reinicie npm run demo.';});
+</script>
+</body></html>

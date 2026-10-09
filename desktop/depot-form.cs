@@ -1,0 +1,24 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Globalization;
+using System.Linq;
+using System.Web.Script.Serialization;
+using System.Windows.Forms;
+
+namespace PokeidleDesktop {
+  public class DepotForm:PremiumForm {
+    public event EventHandler<CommandEvent> Command;public CheckBox AutoSell;public NumericUpDown Minutes;Label summary,message;ListBox pokemon;object account;IconButton sell;public int Slot;
+    public DepotForm(string json,int slot){Slot=slot;account=Data.Serializer.DeserializeObject(json);Text="Depot · "+Data.S(account,"nick");ClientSize=new Size(750,670);StartPosition=FormStartPosition.CenterParent;BackColor=Theme.Bg;ForeColor=Theme.Text;Font=Theme.Font();MinimizeBox=false;MaximizeBox=true;
+      Controls.Add(Theme.Label("Seu Depot",24,18,690,42,24,Theme.Text,true));summary=Theme.Label("",24,70,690,52,12,Theme.Text,true);Controls.Add(summary);Controls.Add(Theme.Label("A Coleção e a equipe ficam fora da venda. Exp. Share equipada fica fora da venda. Shiny e P5 fora da Coleção entram no lote.",24,127,690,48,10,Theme.Green));pokemon=new ListBox {Bounds=new Rectangle(24,184,700,263),BackColor=Theme.Surface,ForeColor=Theme.Text,Font=Theme.Font(10),BorderStyle=BorderStyle.FixedSingle};Controls.Add(pokemon);
+      AutoSell=new ToggleSwitch {Text="Vender todo o Depot automaticamente",Bounds=new Rectangle(24,466,698,27),Checked=Data.B(Data.Get(account,"saleConfig"),"enabled"),ForeColor=Theme.Text};Controls.Add(AutoSell);Controls.Add(Theme.Label("Intervalo em minutos",24,506,225,23,10,Theme.Muted));Minutes=new ModernNumeric {Bounds=new Rectangle(259,502,148,31),Minimum=1,Maximum=10080,Value=(decimal)Math.Max(1,Data.N(Data.Get(account,"saleConfig"),"minutes")),BackColor=Theme.Surface,ForeColor=Theme.Text};Controls.Add(Minutes);
+      var save=new IconButton("Salvar automação","shield",true){Bounds=new Rectangle(427,499,297,37)};save.Click+=(s,e)=>Emit("depot-config",Data.Serializer.Serialize(new Dictionary<string,object>{{"enabled",AutoSell.Checked},{"minutes",(int)Minutes.Value}}));Controls.Add(save);sell=new IconButton("Vender todo o Depot","coin"){Bounds=new Rectangle(24,552,273,39)};sell.Click+=(s,e)=>{var stock=Data.Get(account,"depot");var selected=Data.List(Data.Get(stock,"eligible")).Select(p=>Data.N(p,"id")).ToArray();if(MessageBox.Show("Vender todo este lote de "+selected.Length+" Pokémon do Depot em um pedido? A Coleção, a equipe e Exp. Share equipada ficam fora. Shiny e P5 que estejam no Depot ENTRAM na venda. Esta venda é definitiva.","Vender Depot",MessageBoxButtons.YesNo,MessageBoxIcon.Question)==DialogResult.Yes)Emit("depot-sell",Data.Serializer.Serialize(new Dictionary<string,object>{{"ateId",selected.DefaultIfEmpty(0).Max()}}));};Controls.Add(sell);
+      var review=new IconButton("Revisar venda pendente","shield"){Bounds=new Rectangle(314,552,410,39)};review.Click+=(s,e)=>{if(MessageBox.Show("Confira o Depot no jogo. Já conferiu a venda anterior e quer liberar novas vendas?","Revisar venda",MessageBoxButtons.YesNo,MessageBoxIcon.Question)==DialogResult.Yes)Emit("depot-review");};Controls.Add(review);message=Theme.Label("",24,609,698,43,10,Theme.Amber);Controls.Add(message);UpdateAccount(json);
+    }
+    void Emit(string action,string json=null){if(Command!=null)Command(this,new CommandEvent {Action=action,Slot=Slot,Json=json});}
+    public void Notice(string text){message.Text=text;}
+    public void UpdateAccount(string json){account=Data.Serializer.DeserializeObject(json);var d=Data.Get(account,"depot");summary.Text=Data.B(d,"known")?"Depot: "+Theme.F(Data.N(d,"count"))+" · Disponíveis para venda: "+Data.List(Data.Get(d,"eligible")).Count()+"\nColeção protegida: "+Theme.F(Data.N(d,"collection"))+" · Equipe: "+Theme.F(Data.N(d,"team"))+" · Protegidos no Depot: "+Theme.F(Data.N(d,"protected")):Data.S(d,"message");pokemon.Items.Clear();foreach(var p in Data.List(Data.Get(d,"pokemon")))pokemon.Items.Add(Data.S(p,"name")+" · Nv "+Theme.F(Data.N(p,"level"))+(Data.B(p,"protected")?" · PRESERVADO":(Data.B(p,"shiny")?" · SHINY":"")+(Data.N(p,"potencia")>=5?" · P5":"")+" · disponível para venda"));if(Data.N(d,"count")>200)pokemon.Items.Add("Lista mostra os primeiros 200. O total do Depot está acima.");var guard=Data.Get(account,"saleGuard");sell.Enabled=Data.S(account,"status")=="conectada"&&Data.B(d,"known")&&Data.List(Data.Get(d,"eligible")).Any()&&Data.Get(guard,"pending")==null&&Data.S(guard,"fault")=="";message.Text=Data.S(guard,"fault")!=""?Data.S(guard,"fault"):Data.Get(guard,"pending")!=null?"Venda enviada. Aguardando confirmação do jogo.":Data.N(account,"saleQueued")>0?"Venda em andamento · "+Theme.F(Data.N(account,"saleQueued"))+" na fila.":"A automação só vende enquanto esta conta estiver conectada.";}
+  }
+}
